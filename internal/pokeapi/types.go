@@ -25,6 +25,9 @@ type Area struct {
 type Config struct {
 	NextURL     *string
 	PreviousURL *string
+	// caller would allow to change behaviour depending on
+	// whether mapn or mapb is calling ListLocationAreas
+	Caller string
 }
 
 func CreateConfig() *Config {

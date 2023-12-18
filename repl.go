@@ -26,6 +26,7 @@ func caller(cmdList map[string]command, cmd string) {
 func repl() {
 	prompt := "Pokedex CLI >> "
 	scanner := bufio.NewScanner(os.Stdin)
+
 	fmt.Print(prompt)
 
 	for scanner.Scan() {

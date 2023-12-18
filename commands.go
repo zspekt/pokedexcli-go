@@ -28,11 +28,20 @@ func mapn() error {
 		cfg = pokeapi.CreateConfig()
 	}
 
+	cfg.Caller = "mapn"
+
+	switch {
+	case cfg.Caller == "mapn":
+		break
+	case cfg.Caller == "mapb":
+		break
+	}
+
 	fmt.Printf("\n\ncfg NEXT --> %v\ncfg PREV --> %v\n\n", cfg.NextURL, cfg.PreviousURL)
 
 	pokeapiClient := pokeapi.NewClient()
 
-	resp, err := pokeapiClient.ListLocationAreas(cfg)
+	resp, err := pokeapiClient.ListAnyLocationAreas(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,11 +65,13 @@ func mapb() error {
 		cfg = pokeapi.CreateConfig()
 	}
 
+	cfg.Caller = "mapb"
+
 	fmt.Printf("\n\ncfg NEXT --> %v\ncfg PREV --> %v\n\n", cfg.NextURL, cfg.PreviousURL)
 
 	pokeapiClient := pokeapi.NewClient()
 
-	resp, err := pokeapiClient.ListPrevLocationAreas(cfg)
+	resp, err := pokeapiClient.ListAnyLocationAreas(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
