@@ -43,7 +43,7 @@ func mapn() error {
 
 	resp, err := pokeapiClient.ListAnyLocationAreas(cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	cfg.NextURL = resp.Next
@@ -55,7 +55,6 @@ func mapn() error {
 	if resp.Previous == nil {
 		fmt.Println("*resp.Previous is nil")
 	}
-	fmt.Printf("\n\nAFTER http get. Next: %v\nPrevious: %v\n", resp.Next, resp.Previous)
 	return nil
 }
 
@@ -73,7 +72,7 @@ func mapb() error {
 
 	resp, err := pokeapiClient.ListAnyLocationAreas(cfg)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	cfg.NextURL = resp.Next
@@ -85,6 +84,5 @@ func mapb() error {
 	if resp.Previous == nil {
 		fmt.Println("*resp.Previous is nil")
 	}
-	fmt.Printf("\n\nNext: %v\nPrevious: %v", *resp.Next, resp.Previous)
 	return nil
 }
