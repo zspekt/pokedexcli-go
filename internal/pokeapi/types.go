@@ -3,6 +3,13 @@ package pokeapi
 import (
 	"net/http"
 	"time"
+
+	"github.com/zspekt/pokedexcli/internal/pokecache"
+)
+
+var (
+	GlobalConfig *Config
+	GlobalCache  *pokecache.Cache
 )
 
 type Client struct {

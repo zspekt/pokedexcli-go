@@ -2,122 +2,76 @@ package pokeapi
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/zspekt/pokedexcli/internal/pokecache"
 )
 
-const RootURL string = "https://pokeapi.co/api/v2"
+func init() {
+	GlobalCache = pokecache.NewCache(10 * time.Second)
+}
 
-const EndpointLocArea = "/location-area"
+const RootURL string = "https://pokeapi.co/api/v2/"
 
+const EndpointLocArea = "location-area?offset=0&limit=20"
+
+// makes the http request and unmarshals the data. the reference to a config struct
+// that is passed to it provides the URLs (which it will overwrite), and    also
+// tell the function who called, so it knows which URL to get
 func (c *Client) ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
-	var response LocationAreaResp
 	var fullURL *string
+	var httpResponse *http.Response
 
 	// figure out which URL we want based on who called
-	switch {
-	case cfg.Caller == "mapn":
+	switch cfg.Caller {
+	case "mapn":
+		fmt.Println("caller is mapn and this is NEXTURL --> ", cfg.NextURL)
 		fullURL = cfg.NextURL
-	case cfg.Caller == "mapb":
+	case "mapb":
+		fmt.Println("caller is mapb and this is PREVURL --> ", cfg.PreviousURL)
 		fullURL = cfg.PreviousURL
 	}
 
-	// if URL pointer is nil, figure out which error message we should return
-	// there is definitely a cleaner way to do this
-	switch {
-	// if both URLs are nil, reset to beginning
-	case cfg.NextURL == nil && cfg.PreviousURL == nil:
+	if fullURL == nil || *fullURL == "" {
+		fmt.Println("URL pointer is nil or empty. Initializing with default value.")
 		tmp := RootURL + EndpointLocArea
 		fullURL = &tmp
-	case cfg.Caller == "mapn" && fullURL == nil:
-		return LocationAreaResp{}, errors.New("Reached the end of the line, bud")
-	case cfg.Caller == "mapb" && fullURL == nil:
-		return LocationAreaResp{}, errors.New("Nowhere to go back to, buddy")
 	}
+	fmt.Println(*fullURL)
+	// check if we have this URL's contents cached...
 
-	resp, err := http.Get(*fullURL)
+	if bytes, ok := GlobalCache.Get(*fullURL); ok {
+		fmt.Printf("\n\n%v\n\n", "USING CACHE")
+		return unmarshalJson(bytes)
+	}
+	fmt.Printf("\n\n%v\n\n", "NOT USING CACHE")
+
+	httpResponse, err := http.Get(*fullURL)
 	if err != nil {
 		return LocationAreaResp{}, err
 	}
-	defer resp.Body.Close()
+	defer httpResponse.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(httpResponse.Body)
 	if err != nil {
 		return LocationAreaResp{}, err
 	}
+	// adding the entry to the cache
+	GlobalCache.Add(*fullURL, body)
 
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return LocationAreaResp{}, err
-	}
-
-	// for _, location := range response.Results {
-	// 	fmt.Println(location.Name)
-	// }
-
-	return response, nil
+	return unmarshalJson(body)
 }
 
-//
-// func (c *Client) ListLocationAreas(cfg *Config) (LocationAreaResp, error) {
-// 	var response LocationAreaResp
-//
-// 	fullURL := RootURL + EndpointLocArea
-//
-// 	if cfg.NextURL == nil {
-// 		cfg.NextURL = &fullURL
-// 	}
-//
-// 	resp, err := http.Get(*cfg.NextURL)
-// 	if err != nil {
-// 		return LocationAreaResp{}, err
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	body, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		return LocationAreaResp{}, err
-// 	}
-//
-// 	err = json.Unmarshal(body, &response)
-// 	if err != nil {
-// 		return LocationAreaResp{}, err
-// 	}
-//
-// 	// for _, location := range response.Results {
-// 	// 	fmt.Println(location.Name)
-// 	// }
-//
-// 	return response, nil
-// }
-//
-// func (c *Client) ListPrevLocationAreas(cfg *Config) (LocationAreaResp, error) {
-// 	var response LocationAreaResp
-//
-// 	if cfg.PreviousURL == nil {
-// 		return LocationAreaResp{}, errors.New("Nowhere to go back to.")
-// 	}
-//
-// 	resp, err := http.Get(*cfg.PreviousURL)
-// 	if err != nil {
-// 		return LocationAreaResp{}, err
-// 	}
-// 	defer resp.Body.Close()
-//
-// 	body, err := io.ReadAll(resp.Body)
-// 	if err != nil {
-// 		return LocationAreaResp{}, err
-// 	}
-//
-// 	err = json.Unmarshal(body, &response)
-// 	if err != nil {
-// 		return LocationAreaResp{}, err
-// 	}
-//
-// 	// for _, location := range response.Results {
-// 	// 	fmt.Println(location.Name)
-// 	// }
-//
-// 	return response, nil
-// }
+func unmarshalJson(xbyte []byte) (LocationAreaResp, error) {
+	r := LocationAreaResp{}
+
+	err := json.Unmarshal(xbyte, &r)
+	if err != nil {
+		return LocationAreaResp{}, err
+	}
+
+	return r, nil
+}

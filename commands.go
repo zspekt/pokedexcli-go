@@ -8,6 +8,12 @@ import (
 	"github.com/zspekt/pokedexcli/internal/pokeapi"
 )
 
+var cfg = pokeapi.GlobalConfig
+
+func init() {
+	cfg = pokeapi.CreateConfig()
+}
+
 func commandExit() error {
 	os.Exit(0)
 	return nil
@@ -23,21 +29,13 @@ func commandHelp() error {
 }
 
 func mapn() error {
-	// if cfg doesn't exist, we create it. runtime error if we don't
-	if cfg == nil {
-		cfg = pokeapi.CreateConfig()
-	}
-
 	cfg.Caller = "mapn"
 
-	switch {
-	case cfg.Caller == "mapn":
-		break
-	case cfg.Caller == "mapb":
-		break
-	}
-
-	fmt.Printf("\n\ncfg NEXT --> %v\ncfg PREV --> %v\n\n", cfg.NextURL, cfg.PreviousURL)
+	fmt.Printf(
+		"\n\ncfg NEXT --> %v\ncfg PREV --> %v\n\n",
+		cfg.NextURL,
+		cfg.PreviousURL,
+	)
 
 	pokeapiClient := pokeapi.NewClient()
 
@@ -59,14 +57,13 @@ func mapn() error {
 }
 
 func mapb() error {
-	// if cfg doesn't exist, we create it. runtime error if we don't
-	if cfg == nil {
-		cfg = pokeapi.CreateConfig()
-	}
-
 	cfg.Caller = "mapb"
 
-	fmt.Printf("\n\ncfg NEXT --> %v\ncfg PREV --> %v\n\n", cfg.NextURL, cfg.PreviousURL)
+	fmt.Printf(
+		"\n\ncfg NEXT --> %v\ncfg PREV --> %v\n\n",
+		cfg.NextURL,
+		cfg.PreviousURL,
+	)
 
 	pokeapiClient := pokeapi.NewClient()
 
