@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/zspekt/pokedexcli/internal/pokeapi"
 )
+
+var CmdWritten []string = []string{}
 
 type command struct {
 	name        string
 	description string
-	call        func() error
+	call        func(*pokeapi.Config) error
 }
 
 // fmt.Scanln(&poop)
@@ -20,7 +24,7 @@ type command struct {
 func caller(cmdList map[string]command, cmd string) {
 	// should include error return
 	cmdToRun := cmdList[cmd]
-	cmdToRun.call()
+	cmdToRun.call(Cfg)
 }
 
 func repl() {
@@ -30,16 +34,16 @@ func repl() {
 	fmt.Print(prompt)
 
 	for scanner.Scan() {
-		cmdWritten, err := cleanInput(scanner.Text())
+		CmdWritten, err := cleanInput(scanner.Text())
 		if err != nil {
 			fmt.Print(prompt)
 			continue
 		}
 
-		if cmd, ok := getCommand()[cmdWritten[0]]; ok {
-			cmd.call()
+		if cmd, ok := getCommand()[CmdWritten[0]]; ok {
+			cmd.call(Cfg)
 		} else {
-			fmt.Printf("The command you have entered: <%v> is invalid.\n", cmdWritten)
+			fmt.Printf("The command you have entered: <%v> is invalid.\n", CmdWritten)
 		}
 
 		fmt.Print(prompt)
@@ -67,6 +71,11 @@ func getCommand() map[string]command {
 			name:        "mapb",
 			description: "Display the previous 20 locations",
 			call:        mapb,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Explore the selected area",
+			call:        explore,
 		},
 	}
 }

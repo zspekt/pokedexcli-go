@@ -65,6 +65,29 @@ func (c *Client) ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
 	return unmarshalJson(body)
 }
 
+func (cl *Client) Explore(cf *Config) (Pkmn, error) {
+	var fullURL *string
+	var httpResponse *http.Response
+	returnVal := Pkmn{}
+
+	httpResponse, err := http.Get(*fullURL)
+	if err != nil {
+		return Pkmn{}, err
+	}
+	defer httpResponse.Body.Close()
+
+	body, err := io.ReadAll(httpResponse.Body)
+	if err != nil {
+		return Pkmn{}, err
+	}
+
+	return returnVal, err
+}
+
+func (r *ExploreAreaResp) listPokemons(c *Config) ([]Pkmn, error) {
+	return []Pkmn{}, nil
+}
+
 func unmarshalJson(xbyte []byte) (LocationAreaResp, error) {
 	r := LocationAreaResp{}
 
