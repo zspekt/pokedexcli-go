@@ -55,7 +55,7 @@ type Area struct {
 	URL  string `json:"url"`
 }
 
-type Pkmn struct {
+type Pokemon struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
@@ -89,7 +89,7 @@ type ExploreAreaResp struct {
 		Name string `json:"name"`
 	} `json:"names"`
 	PokemonEncounters []struct {
-		Pokemon        Pkmn `json:"pokemon"`
+		Pokemon        Pokemon `json:"pokemon"`
 		VersionDetails []struct {
 			EncounterDetails []struct {
 				Chance          int           `json:"chance"`

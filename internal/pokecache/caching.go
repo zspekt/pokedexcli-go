@@ -67,7 +67,7 @@ func (c *Cache) reapLoop(interval time.Duration) {
 			c.mutex.Lock()
 			for k, v := range c.cache {
 				if time.Since(v.createdAt) > interval {
-					fmt.Println("reap this entry from cache --> ", k)
+					fmt.Println("\n\nreap this entry from cache --> ", k)
 					delete(c.cache, k)
 				}
 			}

@@ -48,42 +48,18 @@ func ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
 	if err != nil {
 		return LocationAreaResp{}, err
 	}
-	return unmarshalJson(bytes)
+	return unmarshalJson(bytes, LocationAreaResp{})
 }
 
-func (cl *Client) Explore(cf *Config) (Pkmn, error) {
-	var fullURL *string
-	var httpResponse *http.Response
-	returnVal := Pkmn{}
+func unmarshalJson[T any](xbyte []byte, customStruct T) (T, error) {
+	var returnVal T
 
-	httpResponse, err := http.Get(*fullURL)
+	err := json.Unmarshal(xbyte, &returnVal)
 	if err != nil {
-		return Pkmn{}, err
-	}
-	defer httpResponse.Body.Close()
-
-	body, err := io.ReadAll(httpResponse.Body)
-	fmt.Print(body)
-	if err != nil {
-		return Pkmn{}, err
+		return returnVal, err
 	}
 
-	return returnVal, err
-}
-
-func (r *ExploreAreaResp) listPokemons(c *Config) ([]Pkmn, error) {
-	return []Pkmn{}, nil
-}
-
-func unmarshalJson(xbyte []byte) (LocationAreaResp, error) {
-	r := LocationAreaResp{}
-
-	err := json.Unmarshal(xbyte, &r)
-	if err != nil {
-		return LocationAreaResp{}, err
-	}
-
-	return r, nil
+	return returnVal, nil
 }
 
 // retrieves from cache and returns or makes HTTP request and adds it to the cache
@@ -113,3 +89,24 @@ func (c *Client) fetchRequest(url *string) ([]byte, error) {
 
 	return bytes, nil
 }
+
+func Explore(c *Config) (Pokemon, error) {
+	url := RootURL + *c.AreaToExplore
+	returnVal := Pokemon{}
+
+	bytes, err := pokeapiClient.fetchRequest(&url)
+	fmt.Print(bytes)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	return returnVal, nil
+}
+
+// func listPokemons(c *Config) ([]Pokemon, error) {
+// 	for _, encounter := range r.PokemonEncounters {
+// 		fmt.Println(encounter.Pokemon.Name)
+// 	}
+//
+// 	return []Pokemon{}, nil
+// }
