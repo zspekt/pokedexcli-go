@@ -34,7 +34,8 @@ func repl() {
 	fmt.Print(prompt)
 
 	for scanner.Scan() {
-		CmdWritten, err := cleanInput(scanner.Text())
+		var err error
+		CmdWritten, err = cleanInput(scanner.Text())
 		if err != nil {
 			fmt.Print(prompt)
 			continue

@@ -37,7 +37,7 @@ func CreateConfig() *Config {
 	// assign the url to something so we can pass the pointer
 	// we want a default value for something something not crash when pointer is nil
 	// i kinda forgot why i was doing this in the first place
-	nextURL := RootURL + EndpointLocArea
+	nextURL := RootURL + EndpointLocAreaListing
 	return &Config{
 		NextURL: &nextURL,
 	}

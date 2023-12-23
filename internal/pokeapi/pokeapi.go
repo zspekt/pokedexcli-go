@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func init() {
-	GlobalCache = pokecache.NewCache(10 * time.Second)
+	GlobalCache = pokecache.NewCache(5 * time.Minute)
 	pokeapiClient = NewClient()
 }
 
@@ -19,7 +20,11 @@ var pokeapiClient Client
 
 const RootURL string = "https://pokeapi.co/api/v2/"
 
-const EndpointLocArea = "location-area?offset=0&limit=20"
+const EndpointLocAreaExploring = "location-area/"
+
+const test = "https://pokeapi.co/api/v2/location-area/canalave-city-area"
+
+const EndpointLocAreaListing = "location-area?offset=0&limit=20"
 
 // makes the http request and unmarshals the data. the reference to a config struct
 // that is passed to it provides the URLs (which it will overwrite), and    also
@@ -39,7 +44,7 @@ func ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
 
 	if fullURL == nil || *fullURL == "" {
 		fmt.Println("URL pointer is nil or empty. Initializing with default value.")
-		tmp := RootURL + EndpointLocArea
+		tmp := RootURL + EndpointLocAreaListing
 		fullURL = &tmp
 	}
 	fmt.Println(*fullURL)
@@ -48,14 +53,15 @@ func ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
 	if err != nil {
 		return LocationAreaResp{}, err
 	}
-	return unmarshalJson(bytes, LocationAreaResp{})
+	return unmarshalJson[LocationAreaResp](bytes)
 }
 
-func unmarshalJson[T any](xbyte []byte, customStruct T) (T, error) {
+func unmarshalJson[T any](xbyte []byte) (T, error) {
 	var returnVal T
 
 	err := json.Unmarshal(xbyte, &returnVal)
 	if err != nil {
+		log.Fatal(err)
 		return returnVal, err
 	}
 
@@ -90,14 +96,23 @@ func (c *Client) fetchRequest(url *string) ([]byte, error) {
 	return bytes, nil
 }
 
-func Explore(c *Config) (Pokemon, error) {
-	url := RootURL + *c.AreaToExplore
-	returnVal := Pokemon{}
+func Explore(c *Config) (ExploreAreaResp, error) {
+	url := RootURL + EndpointLocAreaExploring + *c.AreaToExplore
+	// url := test
+	returnVal := ExploreAreaResp{}
 
+	fmt.Println("\n\n", url, "\n\n")
 	bytes, err := pokeapiClient.fetchRequest(&url)
-	fmt.Print(bytes)
+	print(bytes)
 	if err != nil {
-		return Pokemon{}, err
+		log.Fatal(err)
+		return ExploreAreaResp{}, err
+	}
+
+	returnVal, err = unmarshalJson[ExploreAreaResp](bytes)
+	if err != nil {
+		log.Fatal(err)
+		return ExploreAreaResp{}, err
 	}
 
 	return returnVal, nil
