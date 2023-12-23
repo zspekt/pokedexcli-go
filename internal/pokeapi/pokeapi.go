@@ -164,3 +164,50 @@ func Catch(c *Config) error {
 		return nil
 	}
 }
+
+func Inspect(c *Config) error {
+	pokemonToInspect := *c.Argument
+	var pokemonResp PokemonResp
+
+	url := RootURL + EndpointPokemon + pokemonToInspect
+
+	if _, ok := CaughtPokemons[pokemonToInspect]; !ok {
+		fmt.Println(pokemonToInspect, "is NOT in your pokedex.")
+		return nil
+	}
+
+	bytes, err := pokeapiClient.fetchRequest(&url)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	pokemonResp, err = unmarshalJson[PokemonResp](bytes)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	fmt.Printf(
+		"Name: %v\nHeight: %v\nWeight: %v\nStats:\n",
+		pokemonResp.Name,
+		pokemonResp.Height,
+		pokemonResp.Weight,
+	)
+	for _, y := range pokemonResp.Stats {
+		fmt.Printf("\t%v: %v\n", y.Stat.Name, y.BaseStat)
+	}
+	fmt.Print("Types:\n")
+	for _, y := range pokemonResp.Types {
+		fmt.Printf("      -> %v\n", y.Type.Name)
+	}
+
+	return nil
+}
+
+func Pokedex(c *Config) error {
+	fmt.Print("Your Pokedex:\n")
+	for key := range CaughtPokemons {
+		fmt.Printf("\t- %v\n", key)
+	}
+	return nil
+}

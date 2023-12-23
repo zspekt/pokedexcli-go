@@ -89,7 +89,7 @@ func explore(c *pokeapi.Config) error {
 		return err
 	}
 
-	fmt.Println("Let's see what's in ", c.Argument, "...")
+	fmt.Println("Let's see what's in ", *c.Argument, "...")
 	for _, p := range ExploreAreaResp.PokemonEncounters {
 		fmt.Println("\t\t--> ", p.Pokemon.Name)
 	}
@@ -102,8 +102,22 @@ func catch(c *pokeapi.Config) error {
 
 	pokeapi.Catch(c)
 
-	for key, value := range pokeapi.CaughtPokemons {
-		fmt.Println("\n\t--> ", key, value, "\n")
-	}
+	// for key, value := range pokeapi.CaughtPokemons {
+	// 	fmt.Println("\n\t--> ", key, value, "\n")
+	// }
+	return nil
+}
+
+func inspect(c *pokeapi.Config) error {
+	c.Argument = &CmdWritten[1]
+
+	pokeapi.Inspect(c)
+
+	return nil
+}
+
+func pokedex(c *pokeapi.Config) error {
+	pokeapi.Pokedex(c)
+
 	return nil
 }
