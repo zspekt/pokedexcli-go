@@ -39,6 +39,8 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 }
 
 // creates new cache and starts the reapLoop go routine before returning
+// the single argument of type time.Duration determines both how frequently
+// the reap loop runs, and how old entries have to be to classify for reaping
 func NewCache(interval time.Duration) *Cache {
 	fmt.Println("Creating new cache..")
 	cache := &Cache{

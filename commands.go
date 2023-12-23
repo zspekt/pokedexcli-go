@@ -37,9 +37,7 @@ func mapn(*pokeapi.Config) error {
 		Cfg.PreviousURL,
 	)
 
-	pokeapiClient := pokeapi.NewClient()
-
-	resp, err := pokeapiClient.ListAnyLocationAreas(Cfg)
+	resp, err := pokeapi.ListAnyLocationAreas(Cfg)
 	if err != nil {
 		log.Println(err)
 	}
@@ -65,9 +63,7 @@ func mapb(*pokeapi.Config) error {
 		Cfg.PreviousURL,
 	)
 
-	pokeapiClient := pokeapi.NewClient()
-
-	resp, err := pokeapiClient.ListAnyLocationAreas(Cfg)
+	resp, err := pokeapi.ListAnyLocationAreas(Cfg)
 	if err != nil {
 		fmt.Println(err)
 	}

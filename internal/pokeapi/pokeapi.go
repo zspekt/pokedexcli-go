@@ -12,7 +12,10 @@ import (
 
 func init() {
 	GlobalCache = pokecache.NewCache(10 * time.Second)
+	pokeapiClient = NewClient()
 }
+
+var pokeapiClient Client
 
 const RootURL string = "https://pokeapi.co/api/v2/"
 
@@ -21,9 +24,8 @@ const EndpointLocArea = "location-area?offset=0&limit=20"
 // makes the http request and unmarshals the data. the reference to a config struct
 // that is passed to it provides the URLs (which it will overwrite), and    also
 // tell the function who called, so it knows which URL to get
-func (c *Client) ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
+func ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
 	var fullURL *string
-	var httpResponse *http.Response
 
 	// figure out which URL we want based on who called
 	switch cfg.Caller {
@@ -42,27 +44,11 @@ func (c *Client) ListAnyLocationAreas(cfg *Config) (LocationAreaResp, error) {
 	}
 	fmt.Println(*fullURL)
 	// check if we have this URL's contents cached...
-
-	if bytes, ok := GlobalCache.Get(*fullURL); ok {
-		fmt.Printf("\n\n%v\n\n", "USING CACHE")
-		return unmarshalJson(bytes)
-	}
-	fmt.Printf("\n\n%v\n\n", "NOT USING CACHE")
-
-	httpResponse, err := http.Get(*fullURL)
+	bytes, err := pokeapiClient.fetchRequest(fullURL)
 	if err != nil {
 		return LocationAreaResp{}, err
 	}
-	defer httpResponse.Body.Close()
-
-	body, err := io.ReadAll(httpResponse.Body)
-	if err != nil {
-		return LocationAreaResp{}, err
-	}
-	// adding the entry to the cache
-	GlobalCache.Add(*fullURL, body)
-
-	return unmarshalJson(body)
+	return unmarshalJson(bytes)
 }
 
 func (cl *Client) Explore(cf *Config) (Pkmn, error) {
@@ -77,6 +63,7 @@ func (cl *Client) Explore(cf *Config) (Pkmn, error) {
 	defer httpResponse.Body.Close()
 
 	body, err := io.ReadAll(httpResponse.Body)
+	fmt.Print(body)
 	if err != nil {
 		return Pkmn{}, err
 	}
@@ -97,4 +84,32 @@ func unmarshalJson(xbyte []byte) (LocationAreaResp, error) {
 	}
 
 	return r, nil
+}
+
+// retrieves from cache and returns or makes HTTP request and adds it to the cache
+func (c *Client) fetchRequest(url *string) ([]byte, error) {
+	// return value
+	var bytes []byte
+	var httpResponse *http.Response
+
+	if bytes, ok := GlobalCache.Get(*url); ok {
+		fmt.Printf("\n\n%v\n\n", "USING CACHE")
+		return bytes, nil
+	}
+	fmt.Printf("\n\n%v\n\n", "NOT USING CACHE")
+
+	httpResponse, err := http.Get(*url)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer httpResponse.Body.Close()
+
+	bytes, err = io.ReadAll(httpResponse.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+	// adding the entry to the cache
+	GlobalCache.Add(*url, bytes)
+
+	return bytes, nil
 }
