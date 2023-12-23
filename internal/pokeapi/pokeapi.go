@@ -5,26 +5,30 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
 	"github.com/zspekt/pokedexcli/internal/pokecache"
 )
 
+var (
+	pokeapiClient  Client
+	CaughtPokemons map[string]Pokemon
+)
+
+const (
+	RootURL                  = "https://pokeapi.co/api/v2/"
+	EndpointLocAreaExploring = "location-area/"
+	EndpointLocAreaListing   = "location-area?offset=0&limit=20"
+	EndpointPokemon          = "pokemon/"
+)
+
 func init() {
 	GlobalCache = pokecache.NewCache(5 * time.Minute)
 	pokeapiClient = NewClient()
+	CaughtPokemons = map[string]Pokemon{}
 }
-
-var pokeapiClient Client
-
-const RootURL string = "https://pokeapi.co/api/v2/"
-
-const EndpointLocAreaExploring = "location-area/"
-
-const test = "https://pokeapi.co/api/v2/location-area/canalave-city-area"
-
-const EndpointLocAreaListing = "location-area?offset=0&limit=20"
 
 // makes the http request and unmarshals the data. the reference to a config struct
 // that is passed to it provides the URLs (which it will overwrite), and    also
@@ -97,13 +101,12 @@ func (c *Client) fetchRequest(url *string) ([]byte, error) {
 }
 
 func Explore(c *Config) (ExploreAreaResp, error) {
-	url := RootURL + EndpointLocAreaExploring + *c.AreaToExplore
+	url := RootURL + EndpointLocAreaExploring + *c.Argument
 	// url := test
 	returnVal := ExploreAreaResp{}
 
 	fmt.Println("\n\n", url, "\n\n")
 	bytes, err := pokeapiClient.fetchRequest(&url)
-	print(bytes)
 	if err != nil {
 		log.Fatal(err)
 		return ExploreAreaResp{}, err
@@ -118,10 +121,46 @@ func Explore(c *Config) (ExploreAreaResp, error) {
 	return returnVal, nil
 }
 
-// func listPokemons(c *Config) ([]Pokemon, error) {
-// 	for _, encounter := range r.PokemonEncounters {
-// 		fmt.Println(encounter.Pokemon.Name)
-// 	}
-//
-// 	return []Pokemon{}, nil
-// }
+func Catch(c *Config) error {
+	//
+	var (
+		baseXp            int
+		baseChanceToCatch float32 = 0.50
+		baseXpWeight      float32 = 0.05
+		modifier          float32
+		modifiedChance    float32 = baseChanceToCatch - modifier
+		pokemonResp       PokemonResp
+		pokemonToCatch    string = *c.Argument
+	)
+
+	url := RootURL + EndpointPokemon + pokemonToCatch
+
+	bytes, err := pokeapiClient.fetchRequest(&url)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	pokemonResp, err = unmarshalJson[PokemonResp](bytes)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	baseXp = pokemonResp.BaseExperience
+	modifier = float32(baseXp) * baseXpWeight
+	rand := rand.Float32()
+
+	fmt.Printf("\nThrowing pokeball at %v ...\n", pokemonToCatch)
+	if rand < modifiedChance {
+		fmt.Printf("\nSuccess! You've caught %v.\n", pokemonToCatch)
+		CaughtPokemons[pokemonToCatch] = Pokemon{
+			Name: pokemonToCatch,
+			URL:  url,
+		}
+		return nil
+	} else {
+		fmt.Printf("\nTrying to catch %v has failed.\n", pokemonToCatch)
+		return nil
+	}
+}

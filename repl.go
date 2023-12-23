@@ -78,6 +78,11 @@ func getCommand() map[string]command {
 			description: "Explore the selected area",
 			call:        explore,
 		},
+		"catch": {
+			name:        "catch",
+			description: "Try to catch a Pokemon",
+			call:        catch,
+		},
 	}
 }
 

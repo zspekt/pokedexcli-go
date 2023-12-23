@@ -81,7 +81,7 @@ func mapb(*pokeapi.Config) error {
 }
 
 func explore(c *pokeapi.Config) error {
-	c.AreaToExplore = &CmdWritten[1]
+	c.Argument = &CmdWritten[1]
 
 	ExploreAreaResp, err := pokeapi.Explore(c)
 	if err != nil {
@@ -89,10 +89,21 @@ func explore(c *pokeapi.Config) error {
 		return err
 	}
 
-	fmt.Println("Let's see what's in ", c.AreaToExplore, "...")
+	fmt.Println("Let's see what's in ", c.Argument, "...")
 	for _, p := range ExploreAreaResp.PokemonEncounters {
 		fmt.Println("\t\t--> ", p.Pokemon.Name)
 	}
 
+	return nil
+}
+
+func catch(c *pokeapi.Config) error {
+	c.Argument = &CmdWritten[1]
+
+	pokeapi.Catch(c)
+
+	for key, value := range pokeapi.CaughtPokemons {
+		fmt.Println("\n\t--> ", key, value, "\n")
+	}
 	return nil
 }
